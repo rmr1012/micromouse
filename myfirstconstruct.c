@@ -1,0 +1,9 @@
+#include <stm32f10x_lib.h>
+#include "sys.h"
+#include "usart.h"		
+#include "delay.h"	
+#include "led.h" 
+#include "key.h"
+#include "exti.h"
+#include "wdg.h"
+#include "timer.h"	
