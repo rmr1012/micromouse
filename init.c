@@ -5,6 +5,20 @@ void IO_Init()
 	RCC->APB2ENR|=1<<3;    //Enable PortB Clock	  
 	RCC->APB2ENR|=1<<2;    //Enable PortA Clock	  	 
 }
+void EXTIX_Init(void)
+{
+	RCC->APB2ENR|=1<<2;     //使能PORTA时钟
+	JTAG_Set(JTAG_SWD_DISABLE);//关闭JTAG和SWD   
+
+	GPIOB->CRL&=0XFFFFFFF0;//PA0设置成输入	  
+	GPIOB->CRL|=0X00000008;   
+				   	
+	Ex_NVIC_Config(GPIO_B,0,0x03); //沿触发
+
+	MY_NVIC_Init(1,2,EXTI0_IRQChannel,2);   
+	   
+}
+
 
 void PWM_Init(u16 arr,u16 psc)
 {		 					 
@@ -28,7 +42,7 @@ void PWM_Init(u16 arr,u16 psc)
 	TIM4->CR1=0x80;     //ARPE enable
 	TIM4->CR1|=0x01;    //enable timer3 									  
 }  	 
-void Timerx_Init(u16 arr,u16 psc)
+void Timer4_Init(u16 arr,u16 psc)
 {
 	RCC->APB1ENR|=1<<2;//TIM4 clock enable    
  	TIM4->ARR=arr;  //auto reload value 
@@ -37,7 +51,18 @@ void Timerx_Init(u16 arr,u16 psc)
 	TIM4->DIER|=1<<0;   //allow update interrupt				
 	TIM4->DIER|=1<<6;   //allow trigger interrupt	   
 	TIM4->CR1|=0x01;    //enable Timer 4
-  	MY_NVIC_Init(1,3,TIM4_IRQChannel,2);//Req1，SubPrioity3，Group2									 
+  	MY_NVIC_Init(2,3,TIM4_IRQChannel,2);//Req1，SubPrioity3，Group2									 
+}
+void Timer3_Init(u16 arr,u16 psc)
+{
+	RCC->APB1ENR|=1<<1;//TIM4 clock enable    
+ 	TIM3->ARR=arr;  //auto reload value 
+	TIM3->PSC=psc;  //freq devider
+
+//	TIM3->DIER|=1<<0;   //allow update interrupt				
+//	TIM3->DIER|=1<<6;   //allow trigger interrupt	   
+
+  	MY_NVIC_Init(2,4,TIM3_IRQChannel,2);//Req1，SubPrioity3，Group2									 
 }
 void uart_init(u32 pclk2,u32 bound)
 {  	 

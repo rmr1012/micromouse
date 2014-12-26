@@ -5,5 +5,7 @@
 
 void IO_Init(void);	  	
 void uart_init(u32 pclk2,u32 bound);
-void Timerx_Init(u16 arr,u16 psc);
+void Timer3_Init(u16 arr,u16 psc);
+void Timer4_Init(u16 arr,u16 psc);
 void PWM_Init(u16 arr,u16 psc);
+void EXTIX_Init(void);

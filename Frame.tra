@@ -15,7 +15,7 @@
 ### ADS-LD Output File: 'Frame.axf'
 ### ADS-LD Command File: 'Frame.lnp'
 ### Checking for dirty Components...
-### Creating CmdFile 'Frame.lnp', Handle=0x00000900
+### Creating CmdFile 'Frame.lnp', Handle=0x00002924
 ### Writing '.lnp' file
 ### ADS-LD Command file 'Frame.lnp' is ready.
 ### ADS-LD: About to start ADS-LD Thread.
