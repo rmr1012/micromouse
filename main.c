@@ -9,8 +9,10 @@ u8 USART_RX_BUF[256];    //RXT buffer maxium 255bytes
 u8 USART_RX_STA=0;       //RX Compleate	 
 u8 USART_RX_CNT=0;       //RX Entre Count	
 u16 echo=0x7855;
-u8 echoc;  
+u16 adcx1,adcx2,adcx3,adcx4; 
+u8 cntt=1;
 char pussy='b';	
+int c,d,e,f;
 int main(void)
 {		
  	Stm32_Clock_Init(9); //system clock init   always init first
@@ -19,22 +21,26 @@ int main(void)
 	GPIOB->CRL|=0X03000000;//AOUT 
 	delay_init(72);	     //delay init
 	uart_init(72,9600);  //uart init
-	PWM_Init(100,18000);	 //count to 100, freq/18000
-	Timer3_Init(65535,30);
+	PWM4_Init(150,18000);	 //count to 100, freq/18000
+	PWM2_Init(100,1800);	 //count to 100, freq/18000	 //IR aqusition pulse
+	Timer3_Init(65535,30);	  //time refrence for echo
 	EXTIX_Init();
+	Adc_Init();
 //	LED0_PWM_VAL=led0pwmval;
-	LED0_PWM_VAL=0x64;
-	
+	LED0_PWM_VAL2=0x34;
+	LED0_PWM_VAL4=0x34;
+
    	while(1)
 	{	
-		printf("%u",echo);
+		printf("%u\t%u\t%u\t%u",adcx1,adcx2,adcx3,adcx4);
 		printf("\n");
-		while((USART1->SR&0X40)==0);//wait for transfer to compleate
-		LED0=!LED0;
-	
-		delay_ms(100);//wait for the end of transmission	   
+	//	USART1->DR=echo/0xff;
+	//	while((USART1->SR&0X40)==0);//wait for transfer to compleate
+		LED0=!LED0; 
+		delay_us(100000);//wait for the end of transmission	   
 	}	 
 } 
+
 void EXTI0_IRQHandler(void)
 {
 	delay_us(10);
@@ -47,9 +53,8 @@ void EXTI0_IRQHandler(void)
 		TIM3->CR1&=0xfe;//stop timer
 		echo=TIM3->CNT;	//read value
 		TIM3->CNT=0x00; //clear timer
-		pussy='a';
 	}
-	EXTI->PR=1<<0;  //清除LINE0上的中断标志位  
+	EXTI->PR=1<<0;  //Clear Interrupt flag 
 }
 
 void USART1_IRQHandler(void)
@@ -58,7 +63,7 @@ void USART1_IRQHandler(void)
 	if(USART1->SR&(1<<5))//RXT recieved
 	{	 
 		res=USART1->DR;	 //read out data and clear interrupt flag
-		LED0_PWM_VAL=res;
+//		LED0_PWM_VAL=res;
 		if(!USART_RX_STA)
 		{ 	
 			USART_RX_BUF[USART_RX_CNT++]=res;
@@ -67,11 +72,38 @@ void USART1_IRQHandler(void)
 	}  											 
 }
 
-void TIM4_IRQHandler(void)
+void TIM2_IRQHandler(void)	 //finish it later when I have access to pots
 { 		    		  			    
-	if(TIM4->SR&0X0001)//Overflow Interrupt
+	if(TIM2->SR&0X0001)//Overflow Interrupt
 	{
-		LED1=!LED1;			    				   				     	    	
+		IRO=0;//defult 1
+				    				   				     	    	
 	}				   
-	TIM4->SR&=~(1<<0);//Clear Interrupt flag 	    
+	TIM2->SR&=~(1<<0);//Clear Interrupt flag 	    
 }
+
+void ADC1_2_IRQHandler(void)	 //finish it later when I have access to pots
+{ 		    		  			    
+	switch (cntt){
+		case 1:
+			adcx1=ADC1->DR;
+			break;
+		case 2:
+			adcx2=ADC1->DR;
+			break;
+		case 3:
+			adcx3=ADC1->DR;
+			break;
+		case 4:
+			adcx4=ADC1->DR;
+			break;
+	}
+	cntt++;
+	if(cntt==5)
+		cntt=1;
+	IRO=!IRO;//defult 1
+
+				    				   				     	    	   
+}
+
+

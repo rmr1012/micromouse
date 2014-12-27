@@ -7,8 +7,8 @@
 //外部中断0服务程序
 void EXTI0_IRQHandler(void)
 {
-	delay_ms(10);//消抖
-	if(WK_UP==1)	 //按键wake
+	delay_us(10);//消抖
+	if(PBin(0)==1)	 //按键wake
 	{
 		LED0=!LED0;
 		LED1=!LED1;	
@@ -19,7 +19,7 @@ void EXTI0_IRQHandler(void)
 //外部中断15~10服务程序
 void EXTI14_10_IRQHandler(void)
 {			
-	delay_ms(10);    //消抖			 
+	delay_us(10);    //消抖			 
 	if(KEY0==0)      //按键0
 	{
 		LED0=!LED0;
@@ -38,14 +38,14 @@ void EXTIX_Init(void)
 	RCC->APB2ENR|=1<<2;     //使能PORTA时钟
 	JTAG_Set(JTAG_SWD_DISABLE);//关闭JTAG和SWD   
 
-	GPIOA->CRL&=0XFFFFFFF0;//PA0设置成输入	  
-	GPIOA->CRL|=0X00000008;   
+	GPIOB->CRL&=0XFFFFFFF0;//PA0设置成输入	  
+	GPIOB->CRL|=0X00000008;   
 	GPIOA->CRH&=0X0F0FFFFF;//PA13,15设置成输入	  
 	GPIOA->CRH|=0X80800000; 				   
 	GPIOA->ODR|=1<<13;	   //PA13上拉,PA0默认下拉
 	GPIOA->ODR|=1<<15;	   //PA15上拉
 
-	Ex_NVIC_Config(GPIO_A,0,RTIR); //上升沿触发
+	Ex_NVIC_Config(GPIO_B,0,0x03); //上升沿触发
 	Ex_NVIC_Config(GPIO_A,13,FTIR);//下降沿触发
 	Ex_NVIC_Config(GPIO_A,15,FTIR);//下降沿触发
 
