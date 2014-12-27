@@ -21,13 +21,14 @@ int main(void)
 	GPIOB->CRL|=0X03000000;//AOUT 
 	delay_init(72);	     //delay init
 	uart_init(72,9600);  //uart init
-	PWM4_Init(150,18000);	 //count to 100, freq/18000
-	PWM2_Init(100,1800);	 //count to 100, freq/18000	 //IR aqusition pulse
+	PWM4_Init(150,18000);				 // ultra ping sig
+//	PWM2_1Init(800,18000);	 //count to 150, freq/18000	// ultra ping sig  .does not work
+	PWM2_2Init(100,1800);	 //count to 100, freq/1800	 //IR aqusition pulse
 	Timer3_Init(65535,30);	  //time refrence for echo
 	EXTIX_Init();
 	Adc_Init();
-//	LED0_PWM_VAL=led0pwmval;
-	LED0_PWM_VAL2=0x34;
+	LED0_PWM_VAL2_2=0x44;
+//	LED0_PWM_VAL2_1=0x34;
 	LED0_PWM_VAL4=0x34;
 
    	while(1)

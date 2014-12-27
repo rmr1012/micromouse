@@ -3,17 +3,19 @@ void SystemInit(void);
 void IO_Init()
 {
 	RCC->APB2ENR|=1<<3;    //Enable PortB Clock	  
-	RCC->APB2ENR|=1<<2;    //Enable PortA Clock	  	 
+	RCC->APB2ENR|=1<<2;    //Enable PortA Clock
+	GPIOA->CRH=0x444448B4;//
+	GPIOA->CRL=0x440000BB;//	 
 }
 void EXTIX_Init(void)
-{
-	RCC->APB2ENR|=1<<2;     //使能PORTA时钟
-	JTAG_Set(JTAG_SWD_DISABLE);//关闭JTAG和SWD   
+{									  
+	RCC->APB2ENR|=1<<2;     //en PORTAclk
+	JTAG_Set(JTAG_SWD_DISABLE);//turn off JTAG&SWD   
 
-	GPIOB->CRL&=0XFF0FFFF0;//PA0设置成输入	  
+	GPIOB->CRL&=0XFF0FFFF0;//PB0 set as input	  
 	GPIOB->CRL|=0X00300008;   
 				   	
-	Ex_NVIC_Config(GPIO_B,0,0x03); //沿触发
+	Ex_NVIC_Config(GPIO_B,0,0x03); //edge trigger
 
 	MY_NVIC_Init(1,1,EXTI0_IRQChannel,2);   
 	   
@@ -23,10 +25,7 @@ void EXTIX_Init(void)
 void PWM4_Init(u16 arr,u16 psc)
 {		 					 
 	RCC->APB1ENR|=1<<2;    //TIM4 Clock Enable    
-
-	GPIOA->CRH&=0XFFFFFFF0;//PA8 Input
-	GPIOA->CRH|=0X00000004;//float HR
-	  	
+	
 	GPIOB->CRL&=0X0FFFFFFF;//PB7 Output
 	GPIOB->CRL|=0XB0000000;// 	  
 	GPIOB->ODR|=1<<7;//PB7 Pull up	
@@ -42,13 +41,10 @@ void PWM4_Init(u16 arr,u16 psc)
 	TIM4->CR1=0x80;     //ARPE enable
 	TIM4->CR1|=0x01;    //enable timer3 									  
 }  
-void PWM2_Init(u16 arr,u16 psc)
+void PWM2_2Init(u16 arr,u16 psc)
 {		 					 
 	RCC->APB1ENR|=1<<0;    //TIM2 Clock Enable    
 
-	  	
-	GPIOA->CRL&=0XFFFFFF0F;//PA1 Output
-	GPIOA->CRL|=0X000000B0;//AOUT 	  
 	GPIOA->ODR|=1<<1;//PA1 Pull up	
 
 	TIM2->ARR=arr;//Auto Reload Value 
@@ -60,8 +56,47 @@ void PWM2_Init(u16 arr,u16 psc)
 	TIM2->CCER|=1<<4;   //OC2 output enable	   
 
 	TIM2->CR1=0x80;     //ARPE enable
-	TIM2->CR1|=0x01;    //enable timer3 									  
-} 	 
+	TIM2->CR1|=0x01;    //enable timer2 									  
+} 
+void PWM2_1Init(u16 arr,u16 psc) //adc clock /IR clock
+{		 					 
+	RCC->APB1ENR|=1<<0;    //TIM2 Clock Enable    
+
+	GPIOA->ODR|=1<<1;//PA1 Pull up	
+
+	TIM2->ARR=arr;//Auto Reload Value 
+	TIM2->PSC=psc;//Freq Devider
+	
+	TIM2->CCMR1|=7<<4;  //CH1 PWM2 mode		 
+	TIM2->CCMR1|=1<<3; //CH1 preload enable   
+
+	TIM2->CCER|=1<<0;   //OC1 output enable	   
+
+	TIM2->CR1=0x80;     //ARPE enable
+	TIM2->CR1|=0x01;    //enable timer2 									  
+}
+void Timer5_Init(u16 arr,u16 psc)
+{
+	RCC->APB1ENR|=1<<3;//TIM4 clock enable    
+ 	TIM5->ARR=arr;  //auto reload value 
+	TIM5->PSC=psc;  //freq devider
+
+	TIM5->DIER|=1<<0;   //allow update interrupt				
+	TIM5->DIER|=1<<6;   //allow trigger interrupt	   
+	TIM5->CR1|=0x01;    //enable Timer 4
+  	MY_NVIC_Init(2,2,TIM4_IRQChannel,2);//Req1，SubPrioity3，Group2									 
+}
+void Timer6_Init(u16 arr,u16 psc)
+{
+	RCC->APB1ENR|=1<<4;//TIM4 clock enable    
+ 	TIM6->ARR=arr;  //auto reload value 
+	TIM6->PSC=psc;  //freq devider
+
+	TIM6->DIER|=1<<0;   //allow update interrupt				
+	TIM6->DIER|=1<<6;   //allow trigger interrupt	   
+	TIM6->CR1|=0x01;    //enable Timer 4
+  	MY_NVIC_Init(2,2,TIM4_IRQChannel,2);//Req1，SubPrioity3，Group2									 
+}	 
 void Timer4_Init(u16 arr,u16 psc)
 {
 	RCC->APB1ENR|=1<<2;//TIM4 clock enable    
@@ -127,40 +162,37 @@ void uart_init(u32 pclk2,u32 bound)
 			 
 void  Adc_Init(void)
 {    
-	//先初始化IO口
- 	RCC->APB2ENR|=1<<2;    //使能PORTA口时钟 
-	GPIOA->CRH=0x444448B4;
-	GPIOA->CRL=0x444000B0;//PA0  2 3 4anolog输入 1 out
-	//通道10/11设置			 
-	RCC->APB2ENR|=1<<9;    //ADC1时钟使能	  
-	RCC->APB2RSTR|=1<<9;   //ADC1复位
-	RCC->APB2RSTR&=~(1<<9);//复位结束	    
-	RCC->CFGR&=~(3<<14);   //分频因子清零	
-	//SYSCLK/DIV2=12M ADC时钟设置为12M,ADC最大时钟不能超过14M!
-	//否则将导致ADC准确度下降! 
+
+ 	RCC->APB2ENR|=1<<2;    //PORTA clk enable 
+		 
+	RCC->APB2ENR|=1<<9;    //ADC1 clk enable	  
+	RCC->APB2RSTR|=1<<9;   //ADC1 reset
+	RCC->APB2RSTR&=~(1<<9);//reset compleate	    
+	RCC->CFGR&=~(3<<14);   //freq div clr	
+//do not pass 14mhz
 	RCC->CFGR|=2<<14;      	 
 
 	ADC1->CR1|=0x6820<<0;   
-	ADC1->CR2|=0x160000<<0;      //使用用外部触发(SWSTART)!!!	必须使用一个事件来触发
+	ADC1->CR2|=0x160000<<0;      
 
-	ADC1->SQR1|=0x00300000;     //1个转换在规则序列中 也就是只转换规则序列1
-	ADC1->SQR3|=0x00020C40;		   
-	//设置通道0~3的采样时间
-	ADC1->SMPR2&=0XFFFFF000;//通道0,1,2,3采样时间清空	  
-	ADC1->SMPR2|=6<<9;      //通道3  239.5周期,提高采样时间可以提高精确度	 
-	ADC1->SMPR2|=6<<6;      //通道2  239.5周期,提高采样时间可以提高精确度	 
-	ADC1->SMPR2|=6<<12;      //通道1  239.5周期,提高采样时间可以提高精确度	 
-	ADC1->SMPR2|=6<<0;      //通道0  239.5周期,提高采样时间可以提高精确度	 
+	ADC1->SQR1|=0x00300000;     
+	ADC1->SQR3|=0x00029062;		   
+//sampling time setting
+	ADC1->SMPR2&=0XFFF00000;	  
+	ADC1->SMPR2|=6<<9;       
+	ADC1->SMPR2|=6<<6;      	 
+	ADC1->SMPR2|=6<<12;     	 
+	ADC1->SMPR2|=6<<15;     
 									 //cr2  0x00160000
 									 //cr1	0x00006820
 									 //sqr1	0x00300000
 						
-	ADC1->CR2|=1<<0;	    //开启AD转换器	 
-	ADC1->CR2|=1<<3;        //使能复位校准  
-	while(ADC1->CR2&1<<3);  //等待校准结束 			 
-    //该位由软件设置并由硬件清除。在校准寄存器被初始化后该位将被清除。 		 
-	ADC1->CR2|=1<<2;        //开启AD校准	   
-	while(ADC1->CR2&1<<2);  //等待校准结束
-	//该位由软件设置以开始校准，并在校准结束时由硬件清除  
+	ADC1->CR2|=1<<0;	    //turn on ADC	 
+	ADC1->CR2|=1<<3;        //enable reset calibration  
+	while(ADC1->CR2&1<<3);  //wait for calibration 			 
+     		 
+	ADC1->CR2|=1<<2;        //enable AD calibration	   
+	while(ADC1->CR2&1<<2);  //wait while calibrating
+
 	MY_NVIC_Init(4,3,ADC1_2_IRQChannel,2);
 }				  
