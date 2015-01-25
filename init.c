@@ -110,7 +110,7 @@ void Timer4_Init(u16 arr,u16 psc)
 }
 void Timer3_Init(u16 arr,u16 psc)	   //time measuring pulse
 {
-	RCC->APB1ENR|=1<<1;//TIM4 clock enable    
+	RCC->APB1ENR|=1<<1;//TIM3 clock enable    
  	TIM3->ARR=arr;  //auto reload value 
 	TIM3->PSC=psc;  //freq devider
 
@@ -146,11 +146,11 @@ void uart_init(u32 pclk2,u32 bound)
 	GPIOA->CRH&=0XFFFFF00F; 
 	GPIOA->CRH|=0X000008B0;//IO status
 		  
-	RCC->APB2RSTR|=1<<14;   //reset usart1
+	RCC->APB2RSTR|=1<<14;   //reset usart1		  
 	RCC->APB2RSTR&=~(1<<14);//stop reset	   	   
 
  	USART1->BRR=mantissa; // Baud Rate config	 
-	USART1->CR1|=0X200C;  //1 stop bit, no check.
+	USART1->CR1|=0x340C;  //1 stop bit, no check.
 
 
 	USART1->CR1|=1<<8;    //PE interrupt enable
