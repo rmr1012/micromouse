@@ -13,6 +13,7 @@ u16 adcx1,adcx2,adcx3,adcx4;
 u8 cntt=1;
 char pussy='b';	
 int c,d,e,f;
+char mem=1;
 int main(void)
 {		
  	Stm32_Clock_Init(9); //system clock init   always init first
@@ -20,11 +21,11 @@ int main(void)
 	GPIOB->CRL&=0XF0FFFFFF;//PB6 Output
 	GPIOB->CRL|=0X03000000;//AOUT 
 	delay_init(72);	     //delay init
-	uart_init(72,9600);  //uart init
+	uart_init(72,115200);  //uart init
 	PWM4_Init(150,18000);				 // ultra ping sig
 //	PWM2_1Init(800,18000);	 //count to 150, freq/18000	// ultra ping sig  .does not work
 	PWM2_2Init(100,1800);	 //count to 100, freq/1800	 //IR aqusition pulse
-	Timer3_Init(65535,30);	  //time refrence for echo
+	Timer3_Init(65535,256);	  //time refrence for echo/ultrasonic
 	EXTIX_Init();
 	Adc_Init();
 	LED0_PWM_VAL2_2=0x44;
@@ -33,7 +34,7 @@ int main(void)
 
    	while(1)
 	{	
-		printf("%u\t%u\t%u\t%u",adcx1,adcx2,adcx3,adcx4);
+		printf("%u\t%u\t%u\t%u\t%u",adcx1,adcx2,adcx3,adcx4,echo);
 		printf("\n");
 	//	USART1->DR=echo/0xff;
 	//	while((USART1->SR&0X40)==0);//wait for transfer to compleate
@@ -44,18 +45,21 @@ int main(void)
 
 void EXTI0_IRQHandler(void)
 {
-	delay_us(10);
-	if(PBin(0)==1)
+
+	EXTI->PR=1<<0;  //Clear Interrupt flag
+//	delay_us(50);
+	if(PBin(0)==1&&mem==0)
 	{
 		TIM3->CR1|=0x01;   //start timer
+		mem=1;
 	}
-	else
+	else if(PBin(0)==0&&mem==1)
 	{
 		TIM3->CR1&=0xfe;//stop timer
 		echo=TIM3->CNT;	//read value
 		TIM3->CNT=0x00; //clear timer
-	}
-	EXTI->PR=1<<0;  //Clear Interrupt flag 
+		mem=0;
+	} 
 }
 
 void USART1_IRQHandler(void)
@@ -88,15 +92,19 @@ void ADC1_2_IRQHandler(void)	 //finish it later when I have access to pots
 	switch (cntt){
 		case 1:
 			adcx1=ADC1->DR;
+			ADC1->DR=0;
 			break;
 		case 2:
 			adcx2=ADC1->DR;
-			break;
+			ADC1->DR=0;
+		 	break;
 		case 3:
 			adcx3=ADC1->DR;
+			ADC1->DR=0;
 			break;
 		case 4:
 			adcx4=ADC1->DR;
+			ADC1->DR=0;
 			break;
 	}
 	cntt++;

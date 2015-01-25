@@ -5,7 +5,7 @@ void IO_Init()
 	RCC->APB2ENR|=1<<3;    //Enable PortB Clock	  
 	RCC->APB2ENR|=1<<2;    //Enable PortA Clock
 	GPIOA->CRH=0x444448B4;//
-	GPIOA->CRL=0x440000BB;//	 
+	GPIOA->CRL=0x444444BB;//	 
 }
 void EXTIX_Init(void)
 {									  
@@ -179,10 +179,10 @@ void  Adc_Init(void)
 	ADC1->SQR3|=0x00029062;		   
 //sampling time setting
 	ADC1->SMPR2&=0XFFF00000;	  
-	ADC1->SMPR2|=6<<9;       
-	ADC1->SMPR2|=6<<6;      	 
-	ADC1->SMPR2|=6<<12;     	 
-	ADC1->SMPR2|=6<<15;     
+	ADC1->SMPR2|=2<<9;       
+	ADC1->SMPR2|=2<<6;      	 
+	ADC1->SMPR2|=2<<12;     	 
+	ADC1->SMPR2|=2<<15;     
 									 //cr2  0x00160000
 									 //cr1	0x00006820
 									 //sqr1	0x00300000
