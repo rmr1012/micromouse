@@ -2,18 +2,21 @@
 void SystemInit(void);
 void IO_Init()
 {
+	RCC->APB2ENR|=1<<4;    //Enable PortC Clock
 	RCC->APB2ENR|=1<<3;    //Enable PortB Clock	  
 	RCC->APB2ENR|=1<<2;    //Enable PortA Clock
-	GPIOA->CRH=0x444448B4;//
-	GPIOA->CRL=0x444444BB;//	 
+	GPIOA->CRH=0x100118B1;//
+	GPIOA->CRL=0x40000010;//
+	GPIOB->CRH=0x11144411;//
+	GPIOB->CRL=0xB3311418;
+	GPIOC->CRH=0x11144444;
+	GPIOC->CRL=0x44444444;	 
+	GPIOB->ODR|=1<<7;//PB7 Pull up	
 }
 void EXTIX_Init(void)
-{									  
-	RCC->APB2ENR|=1<<2;     //en PORTAclk
+{				
+				  
 	JTAG_Set(JTAG_SWD_DISABLE);//turn off JTAG&SWD   
-
-	GPIOB->CRL&=0XFF0FFFF0;//PB0 set as input	  
-	GPIOB->CRL|=0X00300008;   
 				   	
 	Ex_NVIC_Config(GPIO_B,0,0x03); //edge trigger
 
@@ -143,8 +146,6 @@ void uart_init(u32 pclk2,u32 bound)
 	mantissa+=fraction; 
 	RCC->APB2ENR|=1<<2;   //enable PortA clock  
 	RCC->APB2ENR|=1<<14;  //enable USART clock 
-	GPIOA->CRH&=0XFFFFF00F; 
-	GPIOA->CRH|=0X000008B0;//IO status
 		  
 	RCC->APB2RSTR|=1<<14;   //reset usart1		  
 	RCC->APB2RSTR&=~(1<<14);//stop reset	   	   
@@ -172,17 +173,15 @@ void  Adc_Init(void)
 //do not pass 14mhz
 	RCC->CFGR|=2<<14;      	 
 
-	ADC1->CR1|=0x6820<<0;   
+	ADC1->CR1|=0xA820<<0;   
 	ADC1->CR2|=0x160000<<0;      
 
-	ADC1->SQR1|=0x00300000;     
-	ADC1->SQR3|=0x00029062;		   
+	ADC1->SQR1|=0x00500000;     
+	ADC1->SQR3|=0x0C520C40;		   
 //sampling time setting
-	ADC1->SMPR2&=0XFFF00000;	  
-	ADC1->SMPR2|=2<<9;       
-	ADC1->SMPR2|=2<<6;      	 
-	ADC1->SMPR2|=2<<12;     	 
-	ADC1->SMPR2|=2<<15;     
+	ADC1->SMPR2=0x00092482;	  
+
+	     
 									 //cr2  0x00160000
 									 //cr1	0x00006820
 									 //sqr1	0x00300000
@@ -195,4 +194,7 @@ void  Adc_Init(void)
 	while(ADC1->CR2&1<<2);  //wait while calibrating
 
 	MY_NVIC_Init(4,3,ADC1_2_IRQChannel,2);
+}
+void Motors_Init(u16 USM,u16 DECAY)
+{
 }				  

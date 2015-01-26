@@ -9,7 +9,7 @@ u8 USART_RX_BUF[256];    //RXT buffer maxium 255bytes
 u8 USART_RX_STA=0;       //RX Compleate	 
 u8 USART_RX_CNT=0;       //RX Entre Count	
 u16 echo=0x7855;
-u16 adcx1,adcx2,adcx3,adcx4; 
+u16 adcx1,adcx2,adcx3,adcx4,Gyro_raw,Batt; 
 u8 cntt=1;
 char pussy='b';	
 int c,d,e,f;
@@ -18,8 +18,6 @@ int main(void)
 {		
  	Stm32_Clock_Init(9); //system clock init   always init first
 	IO_Init();
-	GPIOB->CRL&=0XF0FFFFFF;//PB6 Output
-	GPIOB->CRL|=0X03000000;//AOUT 
 	delay_init(72);	     //delay init
 	uart_init(72,115200);  //uart init
 	PWM4_Init(150,18000);				 // ultra ping sig
@@ -31,10 +29,12 @@ int main(void)
 	LED0_PWM_VAL2_2=0x44;
 //	LED0_PWM_VAL2_1=0x34;
 	LED0_PWM_VAL4=0x34;
+	IRO=0;//turn on IR LEDs
 
    	while(1)
 	{	
-		printf("%u\t%u\t%u\t%u\t%u",adcx1,adcx2,adcx3,adcx4,echo);
+		printf("adcx1\tadcx2\tadcx3\tadcx4\tGyro\tBatt\techo\n");
+		printf("%u\t%u\t%u\t%u\t%u\t%u\t%u",adcx1,adcx2,adcx3,adcx4,Gyro_raw,Batt,echo);
 		printf("\n");
 	//	USART1->DR=echo/0xff;
 	//	while((USART1->SR&0X40)==0);//wait for transfer to compleate
@@ -77,17 +77,17 @@ void USART1_IRQHandler(void)
 	}  											 
 }
 
-void TIM2_IRQHandler(void)	 //finish it later when I have access to pots
+void TIM2_IRQHandler(void)	 
 { 		    		  			    
 	if(TIM2->SR&0X0001)//Overflow Interrupt
 	{
-		IRO=0;//defult 1
+//		IRO=0;//defult 1
 				    				   				     	    	
 	}				   
 	TIM2->SR&=~(1<<0);//Clear Interrupt flag 	    
 }
 
-void ADC1_2_IRQHandler(void)	 //finish it later when I have access to pots
+void ADC1_2_IRQHandler(void)	 
 { 		    		  			    
 	switch (cntt){
 		case 1:
@@ -106,13 +106,22 @@ void ADC1_2_IRQHandler(void)	 //finish it later when I have access to pots
 			adcx4=ADC1->DR;
 			ADC1->DR=0;
 			break;
+		case 5:
+			Gyro_raw=ADC1->DR;
+			ADC1->DR=0;
+			break;
+		case 6:
+			Batt=ADC1->DR;
+			ADC1->DR=0;
+			break;
 	}
 	cntt++;
-	if(cntt==5)
+	if(cntt==7)
+	{
 		cntt=1;
-	IRO=!IRO;//defult 1
-
-				    				   				     	    	   
+	//	IRO=1;
+	}
+//	IRO=!IRO;//defult 1	    				   				     	    	   
 }
 
 
