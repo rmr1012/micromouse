@@ -45,7 +45,6 @@ int main(void)
 
 void EXTI0_IRQHandler(void)
 {
-
 	EXTI->PR=1<<0;  //Clear Interrupt flag
 //	delay_us(50);
 	if(PBin(0)==1&&mem==0)
