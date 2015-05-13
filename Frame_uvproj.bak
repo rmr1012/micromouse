@@ -411,6 +411,11 @@
               <FileType>1</FileType>
               <FilePath>.\sys.c</FilePath>
             </File>
+            <File>
+              <FileName>init.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\init.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

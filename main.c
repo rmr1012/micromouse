@@ -21,12 +21,17 @@ int main(void)
 	delay_init(72);	     //delay init
 	uart_init(72,115200);  //uart init
 	PWM4_Init(150,18000);				 // ultra ping sig
-//	PWM2_1Init(800,18000);	 //count to 150, freq/18000	// ultra ping sig  .does not work
-	PWM2_2Init(100,1800);	 //count to 100, freq/1800	 //IR aqusition pulse
+
+//	PWM2_2Init(100,1800);	 //count to 100, freq/1800	 //IR aqusition pulse
 	Timer3_Init(65535,256);	  //time refrence for echo/ultrasonic
+
+//	setup 5 for motors?
+	Timer2_Init(65535,10);	// motor try1
+	motor_Init();
+
 	EXTIX_Init();
-	Adc_Init();
-	LED0_PWM_VAL2_2=0x44;
+//	Adc_Init();
+//	LED0_PWM_VAL2_2=0x44;
 //	LED0_PWM_VAL2_1=0x34;
 	LED0_PWM_VAL4=0x34;
 	IRO=0;//turn on IR LEDs
@@ -41,7 +46,7 @@ int main(void)
 		LED0=!LED0; 
 		delay_us(100000);//wait for the end of transmission	   
 	}	 
-} 
+} 																						 
 
 void EXTI0_IRQHandler(void)
 {
@@ -76,12 +81,15 @@ void USART1_IRQHandler(void)
 	}  											 
 }
 
+
 void TIM2_IRQHandler(void)	 
 { 		    		  			    
 	if(TIM2->SR&0X0001)//Overflow Interrupt
 	{
-//		IRO=0;//defult 1
-				    				   				     	    	
+	
+			CDSTEP=!CDSTEP;
+			ABSTEP=!ABSTEP;
+					    				   				     	    	
 	}				   
 	TIM2->SR&=~(1<<0);//Clear Interrupt flag 	    
 }

@@ -1,5 +1,19 @@
 #include "init.h"
 void SystemInit(void);
+void motor_Init()
+{
+	CDDECAY=0;
+	ABDECAY=0;
+	CDUSM0=0; 
+	CDUSM1=0;
+	ABUSM0=0; 
+	ABUSM1=0;//microsteppign config
+	CDRESETN=0;
+	ABRESTN=0;
+	delay_us(100); 
+	CDRESETN=1;
+	ABRESTN=1;
+}
 void IO_Init()
 {
 	RCC->APB2ENR|=1<<4;    //Enable PortC Clock
@@ -29,9 +43,7 @@ void PWM4_Init(u16 arr,u16 psc)
 {		 					 
 	RCC->APB1ENR|=1<<2;    //TIM4 Clock Enable    
 	
-	GPIOB->CRL&=0X0FFFFFFF;//PB7 Output
-	GPIOB->CRL|=0XB0000000;// 	  
-	GPIOB->ODR|=1<<7;//PB7 Pull up	
+	
 
 	TIM4->ARR=arr;//Auto Reload Value 
 	TIM4->PSC=psc;//Freq Devider
@@ -80,25 +92,25 @@ void PWM2_1Init(u16 arr,u16 psc) //adc clock /IR clock
 }
 void Timer5_Init(u16 arr,u16 psc)
 {
-	RCC->APB1ENR|=1<<3;//TIM4 clock enable    
+	RCC->APB1ENR|=1<<3;//TIM5 clock enable    
  	TIM5->ARR=arr;  //auto reload value 
 	TIM5->PSC=psc;  //freq devider
 
 	TIM5->DIER|=1<<0;   //allow update interrupt				
 	TIM5->DIER|=1<<6;   //allow trigger interrupt	   
 	TIM5->CR1|=0x01;    //enable Timer 4
-  	MY_NVIC_Init(2,2,TIM4_IRQChannel,2);//Req1£¬SubPrioity3£¬Group2									 
+  	MY_NVIC_Init(2,2,TIM5_IRQChannel,2);//Req1£¬SubPrioity3£¬Group2									 
 }
 void Timer6_Init(u16 arr,u16 psc)
 {
-	RCC->APB1ENR|=1<<4;//TIM4 clock enable    
+	RCC->APB1ENR|=1<<4;//TIM6 clock enable    
  	TIM6->ARR=arr;  //auto reload value 
 	TIM6->PSC=psc;  //freq devider
 
 	TIM6->DIER|=1<<0;   //allow update interrupt				
 	TIM6->DIER|=1<<6;   //allow trigger interrupt	   
 	TIM6->CR1|=0x01;    //enable Timer 4
-  	MY_NVIC_Init(2,2,TIM4_IRQChannel,2);//Req1£¬SubPrioity3£¬Group2									 
+  	MY_NVIC_Init(2,2,TIM6_IRQChannel,2);//Req1£¬SubPrioity3£¬Group2									 
 }	 
 void Timer4_Init(u16 arr,u16 psc)
 {
@@ -132,7 +144,7 @@ void Timer2_Init(u16 arr,u16 psc)	 //IR sample pulse
 	TIM2->DIER|=1<<6;   //allow trigger interrupt	   
 	TIM2->CR1|=0x01;    //enable Timer 4 
 
-  	MY_NVIC_Init(2,4,TIM3_IRQChannel,2);//Req1£¬SubPrioity3£¬Group2									 
+  	MY_NVIC_Init(2,4,TIM2_IRQChannel,2);//Req1£¬SubPrioity3£¬Group2									 
 }
 void uart_init(u32 pclk2,u32 bound)
 {  	 
